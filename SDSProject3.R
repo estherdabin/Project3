@@ -84,7 +84,6 @@ server <- function(input, output) {
     selected_var <- input$variable
     
     if (selected_var %in% c("W", "L", "Pct", "SRS")) {
-      # Numeric variables, show histogram
       ggplot(selected_data, aes_string(x = selected_var)) +
         geom_histogram(fill = input$color, color = "black", bins = 20) +
         labs(title = paste("Distribution of", selected_var), 
