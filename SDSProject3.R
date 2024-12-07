@@ -44,54 +44,45 @@ ui <- fluidPage(
                   min = 1902, max = 2024, 
                   value = c(1902, 2024)),
       
-      # Help text for year range filter
       helpText("Filter the data by selecting a range of years."),
       
-      # Color choice
       selectInput("color", 
                   label = "Choose Graph Color", 
                   choices = c("red", "blue", "green", "purple", "orange")),
       
-      # Help text for color choice
       helpText("Select the color of the graph bars."),
       
-      # Action Button to update plot
+
       actionButton("update", "Update Graph"),
       
-      # Checkbox for additional graph options
+ 
       checkboxInput("showStats", "Show Descriptive Statistics", value = TRUE),
       
-      # Help text for checkbox
       helpText("Check this box to display descriptive statistics below the graph.")
     ),
     
-    # Main panel for displaying outputs
     mainPanel(
       # Output for the plot
       plotOutput("distPlot"),
-      
-      # Output for descriptive statistics
       verbatimTextOutput("stats")
     )
   )
 )
 
-# Define server logic for the app
+
 server <- function(input, output) {
   
-  # Reactive data subset based on year range
+
   filtered_data <- reactive({
     texas_football_data %>% filter(Year >= input$yearRange[1], Year <= input$yearRange[2])
   })
   
-  # Reactive plot for selected variable and color
   output$distPlot <- renderPlot({
     req(input$update)  # Ensure the action button is pressed
     
     selected_data <- filtered_data()
     selected_var <- input$variable
     
-    # Check if the selected variable is numeric or categorical
     if (selected_var %in% c("W", "L", "Pct", "SRS")) {
       # Numeric variables, show histogram
       ggplot(selected_data, aes_string(x = selected_var)) +
@@ -99,7 +90,6 @@ server <- function(input, output) {
         labs(title = paste("Distribution of", selected_var), 
              x = selected_var, y = "Frequency")
     } else {
-      # Categorical variables, show bar plot
       ggplot(selected_data, aes_string(x = selected_var)) +
         geom_bar(fill = input$color, color = "black") +
         labs(title = paste("Bar Plot of", selected_var), 
@@ -107,7 +97,6 @@ server <- function(input, output) {
     }
   })
   
-  # Reactive statistics output
   output$stats <- renderPrint({
     req(input$showStats)  # Ensure checkbox is selected
     
@@ -115,17 +104,14 @@ server <- function(input, output) {
     selected_var <- input$variable
     
     if (selected_var %in% c("W", "L", "Pct", "SRS")) {
-      # Numeric variables, show mean, SD, and five-number summary
       paste("Mean:", mean(selected_data[[selected_var]], na.rm = TRUE),
             "SD:", sd(selected_data[[selected_var]], na.rm = TRUE),
             "\nSummary:", summary(selected_data[[selected_var]]))
     } else {
-      # Categorical variable, show frequency table
       table(selected_data[[selected_var]])
     }
   })
 }
 
-# Run the application
 shinyApp(ui = ui, server = server)
 
